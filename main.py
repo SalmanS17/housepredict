@@ -28,7 +28,7 @@ st.markdown(
 
 # Display a resized header image
 image = Image.open("House.jpg")
-st.image(image.resize((800, 200)), caption="Find your dream home's value", use_column_width=True)
+st.image(image.resize((800, 600)), caption="Find your dream home's value", use_column_width=True)
 
 # Title and description
 st.title("🏠 House Price Prediction")
