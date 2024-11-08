@@ -2,67 +2,79 @@ import streamlit as st
 import json
 import pickle
 import numpy as np
-import os
+from PIL import Image
 
-# Function to load JSON data from a file
+# Load JSON data
 with open('columns.json', 'r') as f:
-        data= json.load(f)
+    data = json.load(f)
 
-
-# Set the title of the page
-st.set_page_config(page_title="My App", layout="wide")
-st.image("House.jpg", use_column_width=True ) 
-st.title("Welcome to My App")
-
-selected_location = st.selectbox(
-    "Select Desired Location",
-   data["data_columns"][3:],
+# Set page configuration with a stylish theme
+st.set_page_config(page_title="House Price Predictor", layout="wide", page_icon="🏠")
+st.markdown(
+    """
+    <style>
+    .main {background-color: #f5f5f5;}
+    .stButton>button {background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 8px;}
+    .stTitle {color: #333333;}
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
-area = st.text_input("Enter the area of the house (in square feet)", value="1000")
-bedrooms_bhk = st.text_input("Enter the number of BHK / Bedrooms", value="3")
-bathrooms = st.text_input("Enter the number of bathrooms", value="2")
+# Display a header image
+image = Image.open("House.jpg")
+st.image(image, use_column_width=True)
 
+# Title and description
+st.title("🏠 House Price Prediction")
+st.subheader("Get an instant estimation of house prices in your desired location.")
+st.write("Simply provide the area, number of bedrooms, and bathrooms to predict a price.")
+
+# Input fields in an organized layout
+col1, col2, col3 = st.columns(3)
+with col1:
+    selected_location = st.selectbox("Select Desired Location", data["data_columns"][3:])
+with col2:
+    area = st.text_input("Area of the house (in sq. ft.)", value="1000")
+with col3:
+    bedrooms_bhk = st.text_input("Number of BHK / Bedrooms", value="3")
+
+bathrooms = st.text_input("Number of Bathrooms", value="2", help="Include all full and half bathrooms.")
 
 # Load the pre-trained model
 with open('home_prices_model.pickle', 'rb') as f:
     model = pickle.load(f)
 
-
-def predict_price(location,sqft,bath,bhk):
-    loc_index = np.where(np.array(data['data_columns']) == selected_location)[0][0]
-    #print(loc_index)
-
-    x = np.zeros( len(data['data_columns']))
+# Define prediction function
+def predict_price(location, sqft, bath, bhk):
+    loc_index = np.where(np.array(data['data_columns']) == location)[0][0]
+    x = np.zeros(len(data['data_columns']))
     x[0] = sqft
     x[1] = bath
     x[2] = bhk
     if loc_index >= 0:
         x[loc_index] = 1
-    #print(x)
-
     return model.predict([x])[0]
 
-if st.button("Start Prediction"):
-    # Convert the inputs into the required format (e.g., numerical values)
+# Prediction button and result
+if st.button("💡 Predict Price"):
     try:
-        area = float(area)
-        bedrooms_bhk = int(bedrooms_bhk)
-        bathrooms = int(bathrooms)
+        area_val = float(area)
+        bedrooms_val = int(bedrooms_bhk)
+        bathrooms_val = int(bathrooms)
+
+        predicted_price = predict_price(selected_location, area_val, bathrooms_val, bedrooms_val)
+        st.success(f"🏡 Estimated Price: ₹ {round(predicted_price, 2)} Lakh")
     except ValueError:
-        st.warning("Please enter valid numbers for all inputs.")
+        st.warning("Please enter valid numerical values for area, BHK, and bathrooms.")
+    except Exception as e:
+        st.warning(f"An error occurred: {e}")
 
-    try:
-        predicted_price=predict_price(selected_location,area,bathrooms,bedrooms_bhk)
-        st.success(str(round(predicted_price,2))+" (IND Lakh)")
-    except Exception:
-       st.warning("Problem in Model")  
-    
-    
-    
-    
-    #st.success('House Prices is : *****' )
-#else:
-#    st.error('There is some problem, try later' );
-
-
+# Footer message
+st.markdown(
+    """
+    <br><br>
+    <center>🔍 Created by [Your Name](#) | © 2024 House Price Predictor</center>
+    """,
+    unsafe_allow_html=True
+)
