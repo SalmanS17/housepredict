@@ -11,7 +11,7 @@ with open('columns.json', 'r') as f:
 
 # Set the title of the page
 st.set_page_config(page_title="My App", layout="wide")
-st.image("House.jpg", use_column_width=True ) 
+st.image("header.jpg", use_column_width=True ) 
 st.title("Welcome to My App")
 
 selected_location = st.selectbox(
